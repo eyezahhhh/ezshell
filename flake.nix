@@ -44,6 +44,7 @@
                              , disabledMonitors ? null
                              , scale ? null
                              , wallpaperDir ? null
+                             , qemuConnectionUrl ? null
                              }:
           let
             pkgs = nixpkgs.legacyPackages.${system};
@@ -75,6 +76,7 @@
                 pkgs.papirus-icon-theme
                 pkgs.libmanette
                 pkgs.libgudev
+                pkgs.libvirt-glib
               ];
           in
           pkgs.buildNpmPackage {
@@ -134,7 +136,8 @@
                 --gtk 4 \
                 -d "SRC='$out/share'" \
                 -d "INSTANCE_ID='${instanceId}'" \
-                ${pkgs.lib.optionalString (wallpaperDir != null) "-d \"WALLPAPER_DIR='${wallpaperDir}'\""}
+                ${pkgs.lib.optionalString (wallpaperDir != null) "-d \"WALLPAPER_DIR='${wallpaperDir}'\""} \
+                ${pkgs.lib.optionalString (qemuConnectionUrl != null) "-d \"QEMU_STRING='${qemuConnectionUrl}'\""}
             ''
             + pkgs.lib.optionalString enableGreeter ''
               echo "Bundling greeter..."
@@ -210,6 +213,7 @@
               pkgs.accountsservice
               pkgs.libmanette
               pkgs.libgudev
+              pkgs.libvirt-glib
             ];
         in
         {
@@ -248,7 +252,15 @@
               '';
             };
 
-            shell.enable = lib.mkEnableOption "Eyezah UI desktop shell";
+            shell = {
+              enable = lib.mkEnableOption "Eyezah UI desktop shell";
+
+              qemuConnectionUrl = lib.mkOption {
+                type = lib.types.str;
+                default = "qemu:///system";
+                description = "QEMU connection string used to manage virtual machines.";
+              };
+            };
 
             greeter = {
               enable = lib.mkEnableOption "Eyezah UI greeter";
@@ -297,6 +309,7 @@
                   disabledMonitors = cfg.greeter.disabledMonitors;
                   scale = cfg.greeter.scale;
                   wallpaperDir = cfg.wallpaperDir;
+                  qemuConnectionUrl = cfg.qemuConnectionUrl;
                 };
               description = "Final eyezah-ui package derivation.";
             };

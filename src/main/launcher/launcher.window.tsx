@@ -14,6 +14,8 @@ import { DictionaryLauncherHandler } from "./handlers/dictionary/dictionary.laun
 import { FirefoxLauncherHandler } from "./handlers/firefox/firefox.launcher-handler";
 import { TodoLauncherHandler } from "./handlers/todo/todo.launcher-handler";
 import { WallpaperLauncherHandler } from "./handlers/wallpaper/wallpaper.launcher-handler";
+import { VMLauncherHandler } from "./handlers/vm/vm.launcher-handler";
+import { IS_DEV } from "@const/is-dev";
 
 interface Section {
 	handler: LauncherHandler;
@@ -38,6 +40,7 @@ export function LauncherWindow() {
 		new CodeLauncherHandler(setQuery),
 		new WallpaperLauncherHandler(setQuery),
 		new FirefoxLauncherHandler(setQuery),
+		new VMLauncherHandler(setQuery),
 		new AppsLauncherHandler(setQuery),
 		new DictionaryLauncherHandler(setQuery),
 		new CalcLauncherHandler(setQuery),
@@ -183,7 +186,7 @@ export function LauncherWindow() {
 			name="launcher"
 			class={CLASS}
 			exclusivity={Astal.Exclusivity.EXCLUSIVE}
-			keymode={Astal.Keymode.ON_DEMAND}
+			keymode={IS_DEV ? Astal.Keymode.ON_DEMAND : Astal.Keymode.EXCLUSIVE}
 			application={app}
 			namespace={`${CLASS}_launcher`}
 			cssClasses={[styles.window]}
