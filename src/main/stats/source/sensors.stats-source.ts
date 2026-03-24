@@ -1,6 +1,7 @@
 import { execAsync } from "ags/process";
 import { Statistic, StatsSource } from "./stats-source";
 import { toSizeSuffix } from "@util/unit";
+import Config from "@util/config";
 
 type SensorAdapter = {
 	Adapter: string;
@@ -28,22 +29,54 @@ interface SensorStructure {
 	max?: number;
 }
 
-const TEENYBOOK_VALUES: SensorStructure[] = [
-	{
-		icon: "sensors-fan-symbolic",
-		adapter: "macsmc_hwmon-isa-0000",
-		sensor: "Fan",
-		label: `{RAW} RPM`,
-	},
-	{
-		icon: "power-symbolic",
-		adapter: "macsmc_hwmon-isa-0000",
-		sensor: "Total System Power",
-		label: `{SIMPLIFY}W`,
-		min: 0,
-		max: 35,
-	},
-];
+// const TEENYBOOK_VALUES: SensorStructure[] = [
+// 	{
+// 		icon: "sensors-fan-symbolic",
+// 		adapter: "macsmc_hwmon-isa-0000",
+// 		sensor: "Fan",
+// 		label: `{RAW} RPM`,
+// 	},
+// 	{
+// 		icon: "power-symbolic",
+// 		adapter: "macsmc_hwmon-isa-0000",
+// 		sensor: "Total System Power",
+// 		label: `{SIMPLIFY}W`,
+// 		min: 0,
+// 		max: 35,
+// 	},
+// ];
+
+const configStats: SensorStructure[] =
+	Config.getAsTemplate(
+		"stats",
+		{
+			sensors: [
+				{
+					adapter: "string",
+					sensor: "string",
+					icon: "string",
+					label: "string",
+					min: "number",
+					max: "number",
+				},
+			],
+		},
+		true,
+	)
+		.sensors?.map((stat) => {
+			if (stat.adapter && stat.sensor && stat.icon && stat.label) {
+				return {
+					adapter: stat.adapter,
+					sensor: stat.sensor,
+					icon: stat.icon,
+					label: stat.label,
+					min: stat.min ?? undefined,
+					max: stat.max ?? undefined,
+				};
+			}
+			return null;
+		})
+		?.filter((stat) => !!stat) ?? [];
 
 export class SensorsStatsSource extends StatsSource {
 	constructor() {
@@ -92,8 +125,7 @@ export class SensorsStatsSource extends StatsSource {
 
 		const stats: Statistic[] = [];
 
-		for (const template of TEENYBOOK_VALUES) {
-			// todo: CHANGE
+		for (const template of configStats) {
 			const adapter = flattenedList[template.adapter];
 			if (adapter) {
 				const sensorInfo = adapter.sensors[template.sensor];

@@ -25,7 +25,7 @@ export type InferConfig<T> = {
 
 type ConfigTemplateValue = ConfigTemplate | "string" | "boolean" | "number";
 export type ConfigTemplate = {
-	[K in string]: ConfigTemplateValue;
+	[K in string]: ConfigTemplateValue | [ConfigTemplateValue];
 };
 
 export class ConfigSection {
@@ -139,9 +139,9 @@ export class ConfigSection {
 	) {
 		const source = this.get(key);
 		const output: Partial<T> = {};
-		const paths: string[][] = [[]];
+		const paths: (string | number)[][] = [[]];
 
-		const traverse = (object: any, path: string[]) => {
+		const traverse = (object: any, path: (string | number)[]) => {
 			for (const part of path) {
 				if (typeof object != "object") {
 					throw new Error("Template path traversal failed");
@@ -152,9 +152,60 @@ export class ConfigSection {
 		};
 
 		for (const path of paths) {
-			const templateSection = traverse(template, path) as ConfigTemplateValue;
+			const templateSection = traverse(
+				template,
+				path.map((part) => (typeof part == "number" ? 0 : part)),
+			) as ConfigTemplateValue | [ConfigTemplateValue];
 			const sourceSection = traverse(source, path);
 			const destSection = traverse(output, path);
+
+			if (Array.isArray(templateSection)) {
+				if (!Array.isArray(sourceSection)) {
+					if (partial) {
+						continue;
+					}
+					throw new Error(
+						`Config template part "${path.join(".")}" is not an array`,
+					);
+				}
+
+				const type = templateSection[0];
+
+				for (let i = 0; i < sourceSection.length; i++) {
+					const newPath = [...path, i];
+					const value = sourceSection[i];
+
+					if (typeof type == "object") {
+						if (typeof value != "object") {
+							if (partial) {
+								continue;
+							}
+							throw new Error(
+								`Config template part "${newPath.join(".")}" is not an object`,
+							);
+						}
+						paths.push(newPath);
+						if (Array.isArray(type)) {
+							destSection[i] = [];
+						} else {
+							destSection[i] = {};
+						}
+					} else {
+						if (typeof value != type) {
+							if (partial) {
+								continue;
+							}
+							throw new Error(
+								`Config template part "${newPath.join(".")}" is not a ${type}`,
+							);
+						}
+
+						destSection[i] = value;
+					}
+				}
+
+				continue;
+			}
 
 			for (const [key, type] of Object.entries(templateSection) as [
 				string,
@@ -181,8 +232,11 @@ export class ConfigSection {
 						);
 					}
 					paths.push(newPath);
-					destSection[key] = {};
-					// console.log(`Queueing template path "${newPath.join(".")}"`);
+					if (Array.isArray(type)) {
+						destSection[key] = [];
+					} else {
+						destSection[key] = {};
+					}
 				} else {
 					if (typeof value != type) {
 						if (partial) {
@@ -192,8 +246,8 @@ export class ConfigSection {
 							`Config template part "${newPath.join(".")}" is not a ${type}`,
 						);
 					}
+
 					destSection[key] = value;
-					// console.log(`Added part "${newPath.join(".")}"`);
 				}
 			}
 		}
