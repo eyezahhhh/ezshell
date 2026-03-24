@@ -1,9 +1,11 @@
 import { CACHE_DIRECTORY } from "@const/cache-directory";
 import { ROOT } from "@const/root";
-import { WALLUST_FILE } from "@const/wallust-file";
 import app from "ags/gtk4/app";
 import { exec } from "ags/process";
 import { createCommandProcess } from "./cli.util";
+import Config from "./config.util";
+
+const WALLUST_FILE = Config.getString("theme.wallustThemeFile");
 
 const GENERATE_STYLE_COMMAND = [
 	"node",

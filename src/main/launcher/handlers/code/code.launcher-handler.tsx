@@ -339,6 +339,8 @@ export class CodeLauncherHandler extends LauncherHandler {
 			const contents =
 				this.cache.map((e) => `${e.frequency} ${e.path}`).join("\n") + "\n";
 
+			console.log("Writing code file:", CACHE_LOCATION, contents);
+
 			await writeFileOrSymlink(CACHE_LOCATION, contents);
 		} catch (e) {
 			console.error("Failed to update code cache", e);

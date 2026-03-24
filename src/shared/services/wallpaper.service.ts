@@ -1,17 +1,23 @@
-import { HOME } from "@const/home";
-import { WALLPAPER_DIRECTORY } from "@const/wallpaper-directory";
+import { ROOT } from "@const/root";
 import { CommandPromise } from "@interface/command-promise";
 import { CommandTerminationError } from "@interface/command-termination-error";
 import { createCommandProcess } from "@util/cli";
+import Config from "@util/config";
 import { scanDirectory } from "@util/file";
 import app from "ags/gtk4/app";
 import Gio from "gi://Gio?version=2.0";
 import GObject, { getter, register } from "gnim/gobject";
 
-const DEFAULT_THEME = "ashes-dark";
-const MUTABLE_WALLPAPER_DIR = `${HOME}/nix/assets/wallpapers`;
-
 export namespace Wallpaper {
+	const configSection = Config.getSection("theme");
+	const DEFAULT_THEME =
+		configSection.getString("defaultWallustTheme", true) || "ashes-dark";
+	const WALLPAPER_DIR =
+		configSection.getString("wallpaperDirectory", true) ||
+		`${ROOT}/example-wallpapers`;
+	const MUTABLE_WALLPAPER_DIR =
+		configSection.getString("mutableWallpaperDirectory", true) || WALLPAPER_DIR;
+
 	@register()
 	export class WallpaperFile extends GObject.Object {
 		private _dimensions: [number, number] | null = null;
@@ -28,7 +34,7 @@ export namespace Wallpaper {
 		}
 
 		getPath() {
-			return `${WALLPAPER_DIRECTORY}/${this.name}`;
+			return `${WALLPAPER_DIR}/${this.name}`;
 		}
 
 		getMutablePath() {
@@ -82,9 +88,7 @@ export namespace Wallpaper {
 		}
 
 		private async loadWallpaperList() {
-			const files = await scanDirectory(
-				Gio.File.new_for_path(WALLPAPER_DIRECTORY),
-			);
+			const files = await scanDirectory(Gio.File.new_for_path(WALLPAPER_DIR));
 
 			const paths = files.filter(
 				(file) =>

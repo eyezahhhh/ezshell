@@ -1,20 +1,16 @@
 import { CACHE_DIRECTORY } from "@const/cache-directory";
 import { CLASS } from "@const/class";
-import { DISABLED_MONITOR_IDS } from "@const/disabled-monitor-ids";
-import { ENABLED_MONITOR_IDS } from "@const/enabled-monitor-ids";
 import { IS_DEV } from "@const/is-dev";
-import { MONITOR_SCALE } from "@const/monitor-scale";
 import { ROOT } from "@const/root";
-import { WALLUST_FILE } from "@const/wallust-file";
 import AppRequest from "@service/app-request";
 import { generateStyles, generateStylesSync } from "@util/app";
 import { createCommandProcess } from "@util/cli";
+import Config from "@util/config";
 import { makeDirectoryRecursiveSync } from "@util/file";
 import { createDebouncer } from "@util/time";
 import { monitorFile } from "ags/file";
 import app from "ags/gtk4/app";
 import { exec } from "ags/process";
-import { CURSOR_THEME_ID } from "constants/cursor-theme-id";
 import Gio from "gi://Gio";
 import { GreeterWindow } from "greeter/greeter.window";
 
@@ -24,27 +20,46 @@ const reloadStyles = createDebouncer(() => {
 	console.log("Reloaded CSS.");
 }, 100);
 
+const WALLUST_FILE = Config.getString("theme.wallustThemeFile");
+
 app.start({
 	css: `${CACHE_DIRECTORY}/style.css`,
 	instanceName: `${CLASS}_greeter`,
 	iconTheme: "Papirus",
-	cursorTheme: CURSOR_THEME_ID || undefined,
+	cursorTheme: Config.getString("greeter.cursorTheme", true) || undefined,
 	main: () => {
 		makeDirectoryRecursiveSync(Gio.File.new_for_path(CACHE_DIRECTORY));
 		generateStylesSync(IS_DEV);
 
 		const wlrCommand = ["wlr-randr"];
-		if (DISABLED_MONITOR_IDS) {
-			for (const id of DISABLED_MONITOR_IDS) {
-				wlrCommand.push("--output", id, "--off");
-			}
-		}
-		if (ENABLED_MONITOR_IDS) {
-			for (const id of ENABLED_MONITOR_IDS) {
-				wlrCommand.push("--output", id, "--on");
-				if (MONITOR_SCALE) {
-					wlrCommand.push("--scale", MONITOR_SCALE.toString());
+
+		const monitorSection = Config.getSection("greeter.monitors");
+		const monitorIds = monitorSection.getKeys();
+		for (const monitorId of monitorIds) {
+			const info = monitorSection.getAsTemplate(
+				monitorId,
+				{
+					enabled: "boolean",
+					scale: "number",
+				},
+				true,
+			);
+
+			const flags = ["--output", monitorId];
+			if (info.enabled !== undefined) {
+				if (info.enabled) {
+					flags.push("--on");
+				} else {
+					flags.push("--off");
 				}
+			}
+			if (info.scale !== undefined) {
+				flags.push("--scale", info.scale.toString());
+			}
+
+			if (flags.length > 2) {
+				// some settings were actually specified
+				wlrCommand.push(...flags);
 			}
 		}
 

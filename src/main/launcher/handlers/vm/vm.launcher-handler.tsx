@@ -7,12 +7,14 @@ import AstalHyprland from "gi://AstalHyprland";
 import { onCleanup } from "gnim";
 import { Destroyer } from "@util/destroyer";
 import styles from "./vm.launcher-handler.style";
-import { QEMU_CONNECTION } from "@const/qemu-connection";
 import { doesCommandExist } from "@util/cli";
+import Config from "@util/config";
 
 const PREFIX = "vm";
 
 export class VMLauncherHandler extends LauncherHandler {
+	private readonly connectionString =
+		Config.getString("libvirt.connectionUri", true) || "qemu:///system";
 	private connection: LibvirtGObject.Connection | null = null;
 	private hasPrefix = false;
 	private query = "";
@@ -24,7 +26,7 @@ export class VMLauncherHandler extends LauncherHandler {
 		const enabled = LibvirtGLib.init_check(null);
 		if (enabled) {
 			const connection = new LibvirtGObject.Connection({
-				uri: QEMU_CONNECTION,
+				uri: this.connectionString,
 			});
 			this.connection = connection;
 

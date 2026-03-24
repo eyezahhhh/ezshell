@@ -13,12 +13,15 @@ import { SliderWindow } from "@window/slider/slider";
 import { createBinding } from "gnim";
 import { IS_DEV } from "@const/is-dev";
 import { CACHE_DIRECTORY } from "@const/cache-directory";
-import { WALLUST_FILE } from "@const/wallust-file";
 import { generateStyles, generateStylesSync, watchStyles } from "@util/app";
 import { makeDirectoryRecursiveSync } from "@util/file";
 import Gio from "gi://Gio?version=2.0";
 import { WorkspacesWindow } from "main/workspaces/workspaces.window";
 import AppRequest from "@service/app-request";
+import { StatsWindow } from "main/stats/stats.window";
+import Config from "@util/config";
+
+const WALLUST_FILE = Config.getString("theme.wallustThemeFile");
 
 console.log(`ROOT:`, ROOT);
 
@@ -48,6 +51,7 @@ app.start({
 				const windows: Gtk.Window[] = [
 					BarWindow(monitor),
 					WallpaperWindow(monitor),
+					StatsWindow({ gdkMonitor: monitor }),
 				];
 				monitorWindows.set(monitor, windows);
 			}

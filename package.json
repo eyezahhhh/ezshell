@@ -3,7 +3,7 @@
 	"version": "2.0.0",
 	"scripts": {
 		"dev:greeter": "nodemon -e ts,tsx -i \"**/*.style.ts\" -x \"ags run -d . --gtk 4 greeter.app.ts --define DEV=true --define MONITOR=\\'dp-1\\' --define SCALE=1.6\"",
-		"dev:main": "nodemon -e ts,tsx -i \"**/*.style.ts\" -x \"ags run -d . --gtk 4 main.app.ts --define DEV=true\"",
+		"dev:main": "nodemon -e ts,tsx -i \"**/*.style.ts\" -x \"ags run -d . --gtk 4 main.app.ts --define DEV=true --define CONFIG=\\'./config.yaml\\'\"",
 		"start:greeter": "ags run -d . --gtk 4 greeter.app.ts",
 		"start:main": "ags run -d . --gtk 4 main.app.ts",
 		"format:check": "prettier -c src",
@@ -14,7 +14,8 @@
 	"dependencies": {
 		"ags": "*",
 		"bible-query": "^1.2.0",
-		"gnim": "*"
+		"gnim": "*",
+		"yaml": "^2.8.3"
 	},
 	"prettier": {
 		"semi": false,

@@ -1,0 +1,40 @@
+@use "../../theme.scss";
+
+.section {
+	background: theme.$background-transparent;
+	border-radius: 8px;
+	padding: 8px;
+	color: theme.$text;
+	margin-top: 10px;
+
+	.statContainer {
+		margin-top: 4px;
+
+		&:nth-child(1) {
+			margin-top: 0;
+		}
+	}
+
+	.stat {
+		.progressBar {
+			margin: 0 16px;
+			// background: red;
+
+			trough {
+				background: theme.$wallust-color1;
+				min-height: 8px;
+			}
+
+			progress {
+				background: theme.$wallust-color5;
+				min-height: 4px;
+				margin-left: 2px;
+				margin-right: 2px;
+			}
+		}
+
+		.label {
+			// margin-left: 16px;
+		}
+	}
+}

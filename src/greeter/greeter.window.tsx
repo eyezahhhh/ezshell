@@ -19,8 +19,8 @@ import { SessionSelector } from "./components/session-selector/session-selector.
 import { PowerButtonGroup } from "./components/power-button-group/power-button-group.component";
 import { LoginSection } from "./components/login-section/login-section.component";
 import { IS_DEV } from "@const/is-dev";
-import { SESSIONS_DIRECTORY } from "@const/sessions-directory";
 import Wallpaper from "@service/wallpaper";
+import Config from "@util/config";
 
 export function GreeterWindow(gdkMonitor: Gdk.Monitor) {
 	const { TOP, BOTTOM, LEFT, RIGHT } = Astal.WindowAnchor;
@@ -32,7 +32,9 @@ export function GreeterWindow(gdkMonitor: Gdk.Monitor) {
 	let window: Gtk.Window | null = null;
 	const wallpaperService = Wallpaper.get_default();
 
-	getDesktopSessions([SESSIONS_DIRECTORY])
+	const sessionsDirectory = Config.getString("greeter.sessionsDirectory");
+
+	getDesktopSessions([sessionsDirectory])
 		.then(setSessions)
 		.catch((error) => {
 			console.error(error);
