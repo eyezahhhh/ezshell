@@ -170,27 +170,23 @@ export function writeFileOrSymlink(
 ): Promise<Gio.File> {
 	return new Promise((resolve, reject) => {
 		const gfile = typeof file === "string" ? Gio.File.new_for_path(file) : file;
-		const path = typeof file === "string" ? file : gfile.get_path();
 
-		if (!path) return reject(Error("path is null"));
-
-		const dir = GLib.path_get_dirname(path);
-		if (!GLib.file_test(dir, GLib.FileTest.IS_DIR)) {
-			Gio.File.new_for_path(dir).make_directory_with_parents(null);
-		}
-
-		gfile.replace_contents_bytes_async(
-			new GLib.Bytes(new TextEncoder().encode(content)),
+		gfile.replace_async(
 			null,
 			false,
-			0,
+			Gio.FileCreateFlags.NONE,
+			GLib.PRIORITY_DEFAULT,
 			null,
 			(_, res) => {
 				try {
-					gfile.replace_contents_finish(res);
+					const stream = gfile.replace_finish(res);
+
+					stream.write_all(new TextEncoder().encode(content), null);
+
+					stream.close(null);
 					resolve(gfile);
-				} catch (error) {
-					reject(error);
+				} catch (e) {
+					reject(e);
 				}
 			},
 		);

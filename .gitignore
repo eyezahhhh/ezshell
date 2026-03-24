@@ -2,5 +2,6 @@ node_modules/
 @girs/
 result
 
+config.yaml
 
 wallust.scss

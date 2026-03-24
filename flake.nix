@@ -39,16 +39,19 @@
                              , homeDirectory ? "/home/eyezah"
                              , enableShell ? true
                              , enableGreeter ? false
-                             , sessionsDir ? "/usr/share/wayland-sessions"
-                             , enabledMonitors ? null
-                             , disabledMonitors ? null
-                             , scale ? null
-                             , wallpaperDir ? null
-                             , qemuConnectionUrl ? null
-                             , greeterCursorTheme ? null
+                             , settings ? { }
+                               #  , sessionsDir ? "/usr/share/wayland-sessions"
+                               #  , enabledMonitors ? null
+                               #  , disabledMonitors ? null
+                               #  , scale ? null
+                               #  , wallpaperDir ? null
+                               #  , qemuConnectionUrl ? null
+                               #  , greeterCursorTheme ? null
                              }:
           let
             pkgs = nixpkgs.legacyPackages.${system};
+
+            yaml = pkgs.formats.yaml { };
 
             astalPackages = with ags.packages.${system}; [
               io
@@ -85,7 +88,7 @@
             src = ./.;
             dontNpmBuild = true;
             dontWrapQtApps = true;
-            npmDepsHash = "sha256-QtA000LA01pib40utl65FoJXLgYKSaONX7Iqmhs9fAY=";
+            npmDepsHash = "sha256-Fbxfxb9HasM7p+eZ3LiBKSaWkdlV1pjFCGnYf2g04Vc=";
 
             nativeBuildInputs = [
               pkgs.wrapGAppsHook4
@@ -104,6 +107,7 @@
               pkgs.libqalculate
               pkgs.mozlz4a
               pkgs.qrencode
+              pkgs.lm_sensors
             ];
 
             postPatch = ''
@@ -131,6 +135,8 @@
               mkdir -p $out/bin
               mkdir -p $out/share
               cp -r * $out/share
+
+              cp ${yaml.generate "eyezah-ui-config" settings} $out/share/config.yaml
             ''
             + pkgs.lib.optionalString enableShell ''
               echo "Bundling shell..."
@@ -140,9 +146,7 @@
                 --root . \
                 --gtk 4 \
                 -d "SRC='$out/share'" \
-                -d "INSTANCE_ID='${instanceId}'" \
-                ${pkgs.lib.optionalString (wallpaperDir != null) "-d \"WALLPAPER_DIR='${wallpaperDir}'\""} \
-                ${pkgs.lib.optionalString (qemuConnectionUrl != null) "-d \"QEMU_STRING='${qemuConnectionUrl}'\""}
+                -d "INSTANCE_ID='${instanceId}'"
             ''
             + pkgs.lib.optionalString enableGreeter ''
               echo "Bundling greeter..."
@@ -152,13 +156,7 @@
                 --root . \
                 --gtk 4 \
                 -d "SRC='$out/share'" \
-                -d "INSTANCE_ID='${instanceId}'" \
-                -d "SESSIONS_DIR='${sessionsDir}'" \
-                ${pkgs.lib.optionalString (enabledMonitors != null && enabledMonitors != [] ) "-d \"ENABLED_MONITORS='${builtins.concatStringsSep ":" enabledMonitors}'\""} \
-                ${pkgs.lib.optionalString (disabledMonitors != null && disabledMonitors != [] ) "-d \"DISABLED_MONITORS='${builtins.concatStringsSep ":" disabledMonitors}'\""} \
-                ${pkgs.lib.optionalString (scale != null) "-d \"SCALE='${toString scale}'\""} \
-                ${pkgs.lib.optionalString (wallpaperDir != null) "-d \"WALLPAPER_DIR='${wallpaperDir}'\""} \
-                ${pkgs.lib.optionalString (greeterCursorTheme != null) "-d \"CURSOR_THEME='${greeterCursorTheme}'\""}
+                -d "INSTANCE_ID='${instanceId}'"
             ''
             + ''
               runHook postInstall
@@ -175,6 +173,7 @@
                     pkgs.libqalculate
                     pkgs.mozlz4a
                     pkgs.qrencode
+              pkgs.lm_sensors
                   ]} \
                   --prefix XDG_DATA_DIRS : ${pkgs.papirus-icon-theme}/share
               done
@@ -235,6 +234,7 @@
               pkgs.libqalculate
               pkgs.mozlz4a
               pkgs.qrencode
+              pkgs.lm_sensors
             ];
 
             buildInputs = [
@@ -257,14 +257,13 @@
         in
         {
           options.programs.eyezah-ui = {
-            wallpaperDir = lib.mkOption {
-              type = lib.types.nullOr (lib.types.oneOf [ lib.types.str lib.types.path ]);
-              default = null;
-              description = ''
-                Path to wallpaper directory. Can be:
-                  - a relative path in the flake (e.g., ./wallpaper)
-                  - an absolute path (e.g., /home/eyezah/.wallpapers)
-              '';
+            shell.enable = lib.mkEnableOption "Eyezah UI desktop shell";
+            greeter.enable = lib.mkEnableOption "Eyezah UI greeter";
+
+            settings = lib.mkOption {
+              type = lib.types.attrs;
+              default = { };
+              description = "Freeform config written to YAML.";
             };
 
             exposeAgs = lib.mkOption {
@@ -273,55 +272,69 @@
               description = "Expose the AGS binary in the user's environment.";
             };
 
-            shell = {
-              enable = lib.mkEnableOption "Eyezah UI desktop shell";
-
-              qemuConnectionUrl = lib.mkOption {
-                type = lib.types.str;
-                default = "qemu:///system";
-                description = "QEMU connection string used to manage virtual machines.";
-              };
-            };
-
-            greeter = {
-              enable = lib.mkEnableOption "Eyezah UI greeter";
-
-              sessionsDir = lib.mkOption {
-                type = lib.types.nullOr lib.types.str;
-                default = null;
-                description = "Directory containing available login sessions.";
-              };
-
-              enabledMonitors = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [ ];
-                description = "List of monitors the greeter should enable.";
-              };
-
-              disabledMonitors = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [ ];
-                description = "List of monitors the greeter should disable.";
-              };
-
-              scale = lib.mkOption {
-                type = lib.types.nullOr lib.types.float;
-                default = null;
-                description = "Optional UI scale factor for the greeter.";
-              };
-
-              cursorTheme = lib.mkOption {
-                type = lib.types.str;
-                default = null;
-                description = "Name of XCursor theme to use";
-              };
-            };
-
             instanceId = lib.mkOption {
               type = lib.types.str;
               default = "eyezah-ui";
               description = "Astal instance ID used during build.";
             };
+
+            # wallpaperDir = lib.mkOption {
+            #   type = lib.types.nullOr (lib.types.oneOf [ lib.types.str lib.types.path ]);
+            #   default = null;
+            #   description = ''
+            #     Path to wallpaper directory. Can be:
+            #       - a relative path in the flake (e.g., ./wallpaper)
+            #       - an absolute path (e.g., /home/eyezah/.wallpapers)
+            #   '';
+            # };
+
+
+
+            # shell = {
+            #   enable = lib.mkEnableOption "Eyezah UI desktop shell";
+
+            #   qemuConnectionUrl = lib.mkOption {
+            #     type = lib.types.str;
+            #     default = "qemu:///system";
+            #     description = "QEMU connection string used to manage virtual machines.";
+            #   };
+            # };
+
+            # greeter = {
+            #   enable = lib.mkEnableOption "Eyezah UI greeter";
+
+            #   sessionsDir = lib.mkOption {
+            #     type = lib.types.nullOr lib.types.str;
+            #     default = null;
+            #     description = "Directory containing available login sessions.";
+            #   };
+
+            #   enabledMonitors = lib.mkOption {
+            #     type = lib.types.listOf lib.types.str;
+            #     default = [ ];
+            #     description = "List of monitors the greeter should enable.";
+            #   };
+
+            #   disabledMonitors = lib.mkOption {
+            #     type = lib.types.listOf lib.types.str;
+            #     default = [ ];
+            #     description = "List of monitors the greeter should disable.";
+            #   };
+
+            #   scale = lib.mkOption {
+            #     type = lib.types.nullOr lib.types.float;
+            #     default = null;
+            #     description = "Optional UI scale factor for the greeter.";
+            #   };
+
+            #   cursorTheme = lib.mkOption {
+            #     type = lib.types.str;
+            #     default = null;
+            #     description = "Name of XCursor theme to use";
+            #   };
+            # };
+
+
 
             package = lib.mkOption {
               type = lib.types.package;
@@ -331,13 +344,14 @@
                   homeDirectory = config.home.homeDirectory;
                   enableShell = cfg.shell.enable;
                   enableGreeter = cfg.greeter.enable;
-                  sessionsDir = cfg.greeter.sessionsDir;
-                  enabledMonitors = cfg.greeter.enabledMonitors;
-                  disabledMonitors = cfg.greeter.disabledMonitors;
-                  scale = cfg.greeter.scale;
-                  wallpaperDir = cfg.wallpaperDir;
-                  qemuConnectionUrl = cfg.shell.qemuConnectionUrl;
-                  greeterCursorTheme = cfg.greeter.cursorTheme;
+                  settings = cfg.settings;
+                  # sessionsDir = cfg.greeter.sessionsDir;
+                  # enabledMonitors = cfg.greeter.enabledMonitors;
+                  # disabledMonitors = cfg.greeter.disabledMonitors;
+                  # scale = cfg.greeter.scale;
+                  # wallpaperDir = cfg.wallpaperDir;
+                  # qemuConnectionUrl = cfg.shell.qemuConnectionUrl;
+                  # greeterCursorTheme = cfg.greeter.cursorTheme;
                 };
               description = "Final eyezah-ui package derivation.";
             };
@@ -347,7 +361,7 @@
             assertions = [
               {
                 assertion =
-                  !(cfg.greeter.enable) || (cfg.greeter.sessionsDir != null);
+                  !(cfg.greeter.enable) || (cfg.settings.greeter.sessionsDir != null);
 
                 message =
                   "programs.eyezah-ui.greeter.sessionsDir must be set when greeter.enable = true.";
