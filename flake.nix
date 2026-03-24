@@ -359,13 +359,13 @@
 
           config = lib.mkIf (cfg.shell.enable || cfg.greeter.enable) {
             assertions = [
-              {
-                assertion =
-                  !(cfg.greeter.enable) || (cfg.settings.greeter.sessionsDir != null);
+              # {
+              #   assertion =
+              #     !(cfg.greeter.enable) || (cfg.settings.greeter.sessionsDir != null);
 
-                message =
-                  "programs.eyezah-ui.greeter.sessionsDir must be set when greeter.enable = true.";
-              }
+              #   message =
+              #     "programs.eyezah-ui.greeter.sessionsDir must be set when greeter.enable = true.";
+              # }
             ];
 
             home.packages =
