@@ -39,7 +39,11 @@ export function BarWindow(gdkMonitor: Gdk.Monitor) {
 				onClicked={() => toggleMenu(AudioMenuHandler, "right")}
 			/>
 		),
-		// <BluetoothBarWidget onClicked={() => toggleMenu(BluetoothMenuHandler)} />,
+		() => (
+			<BluetoothBarWidget
+				onClicked={() => toggleMenu(BluetoothMenuHandler, "right")}
+			/>
+		),
 		() => (
 			<BrightnessBarWidget
 				onClicked={() => toggleMenu(DisplayMenuHandler, "right")}

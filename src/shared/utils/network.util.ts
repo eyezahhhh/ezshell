@@ -4,6 +4,7 @@ import { createState } from "gnim";
 import { KillablePromise } from "@interface/killable-promise";
 import Gio from "gi://Gio?version=2.0";
 import GLib from "gi://GLib?version=2.0";
+import { fetch } from "./http.util";
 
 const [connectingWifi, setConnectingWifi] =
 	createState<AstalNetwork.AccessPoint | null>(null);
@@ -263,4 +264,15 @@ export function ping(
 	};
 
 	return promise;
+}
+
+export async function detectCaptivePortal(cancellable?: Gio.Cancellable) {
+	try {
+		const response = await fetch("http://connectivity-check.ubuntu.com", {
+			cancellable,
+		});
+		console.log(response);
+	} catch (e) {
+		console.error(e);
+	}
 }
