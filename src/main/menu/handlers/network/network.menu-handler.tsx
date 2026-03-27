@@ -12,7 +12,11 @@ import {
 	onCleanup,
 	With,
 } from "gnim";
-import { getRescanningWifiAccessor, rescanWifi } from "@util/network";
+import {
+	detectCaptivePortal,
+	getRescanningWifiAccessor,
+	rescanWifi,
+} from "@util/network";
 import { createCommandProcess, doesCommandExist } from "@util/cli";
 import NM from "gi://NM?version=1.0";
 import GLib from "gi://GLib?version=2.0";
@@ -324,6 +328,17 @@ export class NetworkMenuHandler extends MenuHandler {
 			wireguard.connect("notify::connections", () => updateActiveWg()),
 		);
 		updateActiveWg();
+
+		let captivePortalCancellable: Gio.Cancellable | null = null;
+		const updateCaptivePortal = () => {
+			captivePortalCancellable?.cancel();
+			const cancellable = new Gio.Cancellable();
+			captivePortalCancellable = cancellable;
+
+			detectCaptivePortal(cancellable).then(() => {});
+		};
+
+		updateCaptivePortal();
 
 		return (
 			<box orientation={Gtk.Orientation.VERTICAL} widthRequest={250}>

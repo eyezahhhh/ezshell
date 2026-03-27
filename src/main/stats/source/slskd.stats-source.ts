@@ -44,7 +44,7 @@ export class SlskdStatsSource extends StatsSource {
 					try {
 						await this.poll();
 					} catch (e) {
-						console.error(e);
+						// console.error(e);
 					}
 					await new Promise<void>((r) => setTimeout(r, 3_000));
 				}

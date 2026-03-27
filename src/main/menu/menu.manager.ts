@@ -81,4 +81,5 @@ export const MENU_HANDLERS: MenuHandler[] = [
 	new PowerMenuHandler(),
 	new DisplayMenuHandler(),
 	new ControlCenterMenuHandler(),
+	new BluetoothMenuHandler(),
 ] as const;
