@@ -202,7 +202,7 @@ export class NetworkMenuHandler extends MenuHandler {
 					});
 
 				return (
-					<box widthRequest={250}>
+					<box hexpand>
 						<With value={info}>
 							{(info) =>
 								info?.password ? (
@@ -211,7 +211,7 @@ export class NetworkMenuHandler extends MenuHandler {
 										cssClasses={[styles.passwordRevealContainer]}
 									>
 										{info?.file && (
-											<box widthRequest={250} heightRequest={250}>
+											<box hexpand heightRequest={250}>
 												<Thumbnail
 													path={info.file}
 													contentFit={Gtk.ContentFit.CONTAIN}
@@ -341,7 +341,7 @@ export class NetworkMenuHandler extends MenuHandler {
 		updateCaptivePortal();
 
 		return (
-			<box orientation={Gtk.Orientation.VERTICAL} widthRequest={250}>
+			<box orientation={Gtk.Orientation.VERTICAL}>
 				<box>
 					<With
 						value={

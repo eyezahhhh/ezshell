@@ -35,51 +35,66 @@ export class BluetoothMenuHandler extends MenuHandler {
 
 		return (
 			<box orientation={Gtk.Orientation.VERTICAL} widthRequest={250}>
-				<box cssClasses={[styles.buttons]}>
-					<ToggleButton
-						cssClasses={[styles.button]}
-						onClicked={() => {
-							const adapter = bt.get_adapter();
-							if (adapter) {
-								adapter.set_powered(!adapter.powered);
-							}
-						}}
+				<box>
+					<With
+						value={
+							createBinding(bt, "adapter") as Accessor<AstalBluetooth.Adapter>
+						}
 					>
-						<With
-							value={
-								createBinding(bt, "adapter") as Accessor<AstalBluetooth.Adapter>
-							}
-						>
-							{(adapter) => (
-								<image
-									iconName={createBinding(adapter, "powered").as((powered) =>
-										powered
-											? "bluetooth-active-symbolic"
-											: "bluetooth-disabled-symbolic",
-									)}
-								/>
-							)}
-						</With>
-					</ToggleButton>
-					<box>
-						<With value={this.isBluemanInstalled}>
-							{(installed) =>
-								installed && (
-									<ToggleButton
-										cssClasses={[styles.button]}
-										onClicked={() => {
-											AstalHyprland.get_default().message(
-												`dispatch exec blueman-manager`,
-											);
-											setMenu(null);
-										}}
-									>
-										<image iconName="org.gnome.Settings-symbolic" />
-									</ToggleButton>
-								)
-							}
-						</With>
-					</box>
+						{(adapter) => (
+							<box cssClasses={[styles.buttons]}>
+								<ToggleButton
+									cssClasses={[styles.button]}
+									onClicked={() => {
+										const adapter = bt.get_adapter();
+										if (adapter) {
+											adapter.set_powered(!adapter.powered);
+										}
+									}}
+								>
+									<image
+										iconName={createBinding(adapter, "powered").as((powered) =>
+											powered
+												? "bluetooth-active-symbolic"
+												: "bluetooth-disabled-symbolic",
+										)}
+									/>
+								</ToggleButton>
+								<box>
+									<With value={this.isBluemanInstalled}>
+										{(installed) =>
+											installed && (
+												<ToggleButton
+													cssClasses={[styles.button]}
+													onClicked={() => {
+														AstalHyprland.get_default().message(
+															`dispatch exec blueman-manager`,
+														);
+														setMenu(null);
+													}}
+												>
+													<image iconName="org.gnome.Settings-symbolic" />
+												</ToggleButton>
+											)
+										}
+									</With>
+								</box>
+								<ToggleButton
+									active={createBinding(adapter, "discovering")}
+									cssClasses={[styles.button]}
+									onClicked={() => {
+										if (adapter.discovering) {
+											adapter.stop_discovery();
+										} else {
+											adapter.start_discovery();
+										}
+									}}
+								>
+									<image iconName="search-symbolic" />
+								</ToggleButton>
+							</box>
+						)}
+					</With>
 				</box>
 				<box orientation={Gtk.Orientation.VERTICAL}>
 					<For
