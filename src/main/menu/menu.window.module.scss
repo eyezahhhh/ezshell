@@ -5,9 +5,14 @@
 	border-radius: 8px;
 }
 
-.container {
+.scroll {
 	background: theme.$background-transparent;
-	color: theme.$text;
-	padding: 8px;
 	border-radius: 8px;
+
+	.container {
+		background: transparent;
+		color: theme.$text;
+		padding: 8px;
+		border-radius: 8px;
+	}
 }

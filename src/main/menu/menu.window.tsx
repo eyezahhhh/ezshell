@@ -60,9 +60,17 @@ export function MenuWindow() {
 		>
 			<With value={computedBind}>
 				{([handler, data]) => (
-					<box cssClasses={[styles.container]} valign={Gtk.Align.START}>
-						{handler?.getContent(window, data)}
-					</box>
+					<Gtk.ScrolledWindow
+						cssClasses={[styles.scroll]}
+						maxContentHeight={500}
+						propagateNaturalHeight
+						widthRequest={250}
+						hscrollbarPolicy={Gtk.PolicyType.NEVER}
+					>
+						<box cssClasses={[styles.container]} valign={Gtk.Align.START}>
+							{handler?.getContent(window, data)}
+						</box>
+					</Gtk.ScrolledWindow>
 				)}
 			</With>
 		</window>
