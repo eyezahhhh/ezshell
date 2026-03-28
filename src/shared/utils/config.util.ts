@@ -149,7 +149,10 @@ export class ConfigSection {
 		template: T,
 		partial?: boolean,
 	) {
-		const source = this.get(key);
+		const source = this.get(key, partial);
+		if (!source) {
+			return {};
+		}
 		const output: Partial<T> = {};
 		const paths: (string | number)[][] = [[]];
 
