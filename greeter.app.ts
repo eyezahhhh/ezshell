@@ -33,33 +33,39 @@ app.start({
 
 		const wlrCommand = ["wlr-randr"];
 
-		const monitorSection = Config.getSection("greeter.monitors");
-		const monitorIds = monitorSection.getKeys();
-		for (const monitorId of monitorIds) {
-			const info = monitorSection.getAsTemplate(
-				monitorId,
-				{
-					enabled: "boolean",
-					scale: "number",
-				},
-				true,
-			);
+		const monitorSection = Config.getSection("greeter.monitors", true);
+		if (monitorSection) {
+			const monitorIds = monitorSection.getKeys();
+			for (const monitorId of monitorIds) {
+				const info = monitorSection.getAsTemplate(
+					monitorId,
+					{
+						enabled: "boolean",
+						scale: "number",
+						mode: "string",
+					},
+					true,
+				);
 
-			const flags = ["--output", monitorId];
-			if (info.enabled !== undefined) {
-				if (info.enabled) {
-					flags.push("--on");
-				} else {
-					flags.push("--off");
+				const flags = ["--output", monitorId];
+				if (info.enabled !== undefined) {
+					if (info.enabled) {
+						flags.push("--on");
+					} else {
+						flags.push("--off");
+					}
 				}
-			}
-			if (info.scale !== undefined) {
-				flags.push("--scale", info.scale.toString());
-			}
+				if (info.scale !== undefined) {
+					flags.push("--scale", info.scale.toString());
+				}
+				if (info.mode) {
+					flags.push("--mode", info.mode);
+				}
 
-			if (flags.length > 2) {
-				// some settings were actually specified
-				wlrCommand.push(...flags);
+				if (flags.length > 2) {
+					// some settings were actually specified
+					wlrCommand.push(...flags);
+				}
 			}
 		}
 
