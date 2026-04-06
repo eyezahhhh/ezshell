@@ -1,5 +1,5 @@
 {
-  description = "Eyezah-UI desktop shell and greeter";
+  description = "ezshell desktop shell and greeter";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -17,7 +17,7 @@
     , ...
     }:
     let
-      pname = "eyezah-ui";
+      pname = "ezshell";
 
       systems = [
         "x86_64-linux"
@@ -35,19 +35,12 @@
       ############################################################
 
       lib = {
-        mkEyezahUI = system: { instanceId ? "eyezah-ui"
-                             , homeDirectory ? "/home/eyezah"
-                             , enableShell ? true
-                             , enableGreeter ? false
-                             , settings ? { }
-                               #  , sessionsDir ? "/usr/share/wayland-sessions"
-                               #  , enabledMonitors ? null
-                               #  , disabledMonitors ? null
-                               #  , scale ? null
-                               #  , wallpaperDir ? null
-                               #  , qemuConnectionUrl ? null
-                               #  , greeterCursorTheme ? null
-                             }:
+        mkEzshell = system: { instanceId ? "ezshell"
+                            , homeDirectory ? "/home/eyezah"
+                            , enableShell ? true
+                            , enableGreeter ? false
+                            , settings ? { }
+                            }:
           let
             pkgs = nixpkgs.legacyPackages.${system};
 
@@ -136,7 +129,7 @@
               mkdir -p $out/share
               cp -r * $out/share
 
-              cp ${yaml.generate "eyezah-ui-config" settings} $out/share/config.yaml
+              cp ${yaml.generate "ezshell-config" settings} $out/share/config.yaml
             ''
             + pkgs.lib.optionalString enableShell ''
               echo "Bundling shell..."
@@ -175,7 +168,7 @@
                     pkgs.libqalculate
                     pkgs.mozlz4a
                     pkgs.qrencode
-              pkgs.lm_sensors
+                    pkgs.lm_sensors
                   ]} \
                   --prefix XDG_DATA_DIRS : ${pkgs.papirus-icon-theme}/share
               done
@@ -183,17 +176,9 @@
           };
       };
 
-      ############################################################
-      # Default package (flake-valid derivation)
-      ############################################################
-
       packages = forEachSystem (system: pkgs: {
-        default = self.lib.mkEyezahUI system { };
+        default = self.lib.mkEzshell system { };
       });
-
-      ############################################################
-      # Dev shell
-      ############################################################
 
       devShells = forEachSystem (system: pkgs:
         let
@@ -249,18 +234,14 @@
         }
       );
 
-      ############################################################
-      # Home Manager module
-      ############################################################
-
       homeManagerModules.default = { config, lib, pkgs, ... }:
         let
-          cfg = config.programs.eyezah-ui;
+          cfg = config.programs.ezshell;
         in
         {
-          options.programs.eyezah-ui = {
-            shell.enable = lib.mkEnableOption "Eyezah UI desktop shell";
-            greeter.enable = lib.mkEnableOption "Eyezah UI greeter";
+          options.programs.ezshell = {
+            shell.enable = lib.mkEnableOption "ezshell desktop shell";
+            greeter.enable = lib.mkEnableOption "ezshell greeter";
 
             settings = lib.mkOption {
               type = lib.types.attrsOf lib.types.anything;
@@ -276,86 +257,21 @@
 
             instanceId = lib.mkOption {
               type = lib.types.str;
-              default = "eyezah-ui";
+              default = "ezshell";
               description = "Astal instance ID used during build.";
             };
-
-            # wallpaperDir = lib.mkOption {
-            #   type = lib.types.nullOr (lib.types.oneOf [ lib.types.str lib.types.path ]);
-            #   default = null;
-            #   description = ''
-            #     Path to wallpaper directory. Can be:
-            #       - a relative path in the flake (e.g., ./wallpaper)
-            #       - an absolute path (e.g., /home/eyezah/.wallpapers)
-            #   '';
-            # };
-
-
-
-            # shell = {
-            #   enable = lib.mkEnableOption "Eyezah UI desktop shell";
-
-            #   qemuConnectionUrl = lib.mkOption {
-            #     type = lib.types.str;
-            #     default = "qemu:///system";
-            #     description = "QEMU connection string used to manage virtual machines.";
-            #   };
-            # };
-
-            # greeter = {
-            #   enable = lib.mkEnableOption "Eyezah UI greeter";
-
-            #   sessionsDir = lib.mkOption {
-            #     type = lib.types.nullOr lib.types.str;
-            #     default = null;
-            #     description = "Directory containing available login sessions.";
-            #   };
-
-            #   enabledMonitors = lib.mkOption {
-            #     type = lib.types.listOf lib.types.str;
-            #     default = [ ];
-            #     description = "List of monitors the greeter should enable.";
-            #   };
-
-            #   disabledMonitors = lib.mkOption {
-            #     type = lib.types.listOf lib.types.str;
-            #     default = [ ];
-            #     description = "List of monitors the greeter should disable.";
-            #   };
-
-            #   scale = lib.mkOption {
-            #     type = lib.types.nullOr lib.types.float;
-            #     default = null;
-            #     description = "Optional UI scale factor for the greeter.";
-            #   };
-
-            #   cursorTheme = lib.mkOption {
-            #     type = lib.types.str;
-            #     default = null;
-            #     description = "Name of XCursor theme to use";
-            #   };
-            # };
-
-
 
             package = lib.mkOption {
               type = lib.types.package;
               default =
-                self.lib.mkEyezahUI pkgs.system {
+                self.lib.mkEzshell pkgs.system {
                   instanceId = cfg.instanceId;
                   homeDirectory = config.home.homeDirectory;
                   enableShell = cfg.shell.enable;
                   enableGreeter = cfg.greeter.enable;
                   settings = cfg.settings;
-                  # sessionsDir = cfg.greeter.sessionsDir;
-                  # enabledMonitors = cfg.greeter.enabledMonitors;
-                  # disabledMonitors = cfg.greeter.disabledMonitors;
-                  # scale = cfg.greeter.scale;
-                  # wallpaperDir = cfg.wallpaperDir;
-                  # qemuConnectionUrl = cfg.shell.qemuConnectionUrl;
-                  # greeterCursorTheme = cfg.greeter.cursorTheme;
                 };
-              description = "Final eyezah-ui package derivation.";
+              description = "Final ezshell package derivation.";
             };
           };
 
@@ -366,7 +282,7 @@
               #     !(cfg.greeter.enable) || (cfg.settings.greeter.sessionsDir != null);
 
               #   message =
-              #     "programs.eyezah-ui.greeter.sessionsDir must be set when greeter.enable = true.";
+              #     "programs.ezshell.greeter.sessionsDir must be set when greeter.enable = true.";
               # }
             ];
 

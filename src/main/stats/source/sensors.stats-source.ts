@@ -29,23 +29,6 @@ interface SensorStructure {
 	max?: number;
 }
 
-// const TEENYBOOK_VALUES: SensorStructure[] = [
-// 	{
-// 		icon: "sensors-fan-symbolic",
-// 		adapter: "macsmc_hwmon-isa-0000",
-// 		sensor: "Fan",
-// 		label: `{RAW} RPM`,
-// 	},
-// 	{
-// 		icon: "power-symbolic",
-// 		adapter: "macsmc_hwmon-isa-0000",
-// 		sensor: "Total System Power",
-// 		label: `{SIMPLIFY}W`,
-// 		min: 0,
-// 		max: 35,
-// 	},
-// ];
-
 const configStats: SensorStructure[] =
 	Config.getAsTemplate(
 		"stats",
@@ -172,5 +155,9 @@ export class SensorsStatsSource extends StatsSource {
 		} else if (this.getModules().length) {
 			this.update([]);
 		}
+
+		setTimeout(() => {
+			this.poll().catch(console.error);
+		}, 3_000);
 	}
 }

@@ -37,6 +37,8 @@ app.start({
 	instanceName: `${CLASS}_main`,
 	iconTheme: "Papirus",
 	main: () => {
+		const enableDock = Config.getBoolean("dock.enable", true);
+
 		makeDirectoryRecursiveSync(Gio.File.new_for_path(CACHE_DIRECTORY));
 		generateStylesSync(IS_DEV);
 
@@ -53,8 +55,11 @@ app.start({
 					BarWindow(monitor),
 					WallpaperWindow(monitor),
 					StatsWindow({ gdkMonitor: monitor }),
-					DockWindow({ gdkMonitor: monitor }),
 				];
+				if (enableDock !== false) {
+					windows.push(DockWindow({ gdkMonitor: monitor }));
+				}
+
 				monitorWindows.set(monitor, windows);
 			}
 
