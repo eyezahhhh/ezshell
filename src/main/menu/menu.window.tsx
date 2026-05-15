@@ -5,12 +5,18 @@ import { getActiveHandlerStateAccessor, MENU_HANDLERS } from "./menu.manager";
 import { createComputed, createState, onCleanup, With } from "gnim";
 import { MenuHandler } from "./handlers/menu-handler";
 import { CLASS } from "constants/class.const";
+import GLib from "gi://GLib?version=2.0";
+import Gtk4LayerShell from "gi://Gtk4LayerShell?version=1.0";
+import { Destroyer } from "@util/destroyer";
+
+const TOP_MARGIN = 34;
 
 export function MenuWindow() {
 	const { TOP, LEFT, RIGHT } = Astal.WindowAnchor;
 
 	const [handler, setHandler] = createState<MenuHandler | null>(null);
 	const [anchor, setAnchor] = createState<Astal.WindowAnchor>(TOP);
+	const [height, setHeight] = createState(0);
 
 	const stateAccessor = getActiveHandlerStateAccessor();
 	const disconnect = stateAccessor.subscribe(() => {
@@ -50,7 +56,7 @@ export function MenuWindow() {
 		<window
 			anchor={anchor}
 			application={app}
-			marginTop={34}
+			marginTop={TOP_MARGIN}
 			marginRight={10}
 			marginLeft={10}
 			cssClasses={[styles.window]}
@@ -68,14 +74,47 @@ export function MenuWindow() {
 						maxContentHeight={500}
 						propagateNaturalHeight
 						widthRequest={250}
+						vexpand={false}
 						hscrollbarPolicy={Gtk.PolicyType.NEVER}
+						valign={Gtk.Align.START}
 					>
-						<box cssClasses={[styles.container]} valign={Gtk.Align.START}>
+						<box
+							cssClasses={[styles.container]}
+							valign={Gtk.Align.START}
+							onRealize={(container) => {
+								const destroyer = new Destroyer();
+								destroyer.addDisconnect(
+									container,
+									container.connect("unrealize", () => destroyer.destroy()),
+								);
+
+								const paintable = new Gtk.WidgetPaintable({
+									widget: container,
+								});
+
+								destroyer.addDisconnect(
+									paintable,
+									paintable.connect("invalidate-size", () => {
+										// jiggle layer to force compositor to resize
+										Gtk4LayerShell.set_margin(
+											window,
+											Gtk4LayerShell.Edge.TOP,
+											TOP_MARGIN + 1,
+										);
+										Gtk4LayerShell.set_margin(
+											window,
+											Gtk4LayerShell.Edge.TOP,
+											TOP_MARGIN,
+										);
+									}),
+								);
+							}}
+						>
 							{handler?.getContent(window, data)}
 						</box>
 					</Gtk.ScrolledWindow>
 				)}
 			</With>
 		</window>
-	);
+	) as Gtk.Window;
 }
