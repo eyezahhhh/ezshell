@@ -41,7 +41,7 @@ export class PowerMenuHandler extends MenuHandler {
 										<label
 											cssClasses={[styles.percentLabel]}
 											label={createBinding(battery, "percentage").as(
-												(percent) => `${percent * 100}%`,
+												(percent) => `${Math.round(percent * 1000) / 10}%`,
 											)}
 										/>
 									</box>

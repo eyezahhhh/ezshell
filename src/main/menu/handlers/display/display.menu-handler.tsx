@@ -63,10 +63,11 @@ export class DisplayMenuHandler extends MenuHandler {
 						{(shader) => (
 							<ClickableListEntry
 								label={createBinding(shader, "id")}
-								subLabel={createBinding(shader, "active").as((active) =>
-									active ? "Active" : null,
-								)}
+								// subLabel={createBinding(shader, "active").as((active) =>
+								// 	active ? "Active" : null,
+								// )}
 								onClicked={() => (shader.active = !shader.active)}
+								active={createBinding(shader, "active")}
 								cursor={createCursorPointer()}
 							/>
 						)}

@@ -15,7 +15,11 @@ export function getIconTheme() {
 	return Gtk.IconTheme.get_for_display(Gdk.Display.get_default()!);
 }
 
-export function getWindowIcon(windowClass: string) {
+export function getWindowIcon(windowClass: string | null) {
+	if (!windowClass) {
+		return null;
+	}
+
 	const theme = getIconTheme();
 	const apps = new AstalApps.Apps();
 
