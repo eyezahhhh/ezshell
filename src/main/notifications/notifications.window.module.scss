@@ -1,0 +1,37 @@
+@use "../../theme.scss";
+
+.notification {
+	background: theme.$background-transparent;
+	margin-top: 10px;
+	padding: 8px;
+	border-radius: 8px;
+	color: theme.$text;
+
+	&:first-child {
+		margin-top: 0;
+	}
+
+	.close {
+		all: unset;
+		color: theme.$text-secondary;
+
+		&:hover {
+			color: theme.$text;
+		}
+	}
+
+	.appInfo {
+		margin-bottom: 8px;
+
+		.appIcon {
+			margin-right: 4px;
+		}
+
+		.appName {
+		}
+	}
+
+	.summary {
+		font-size: 1.1rem;
+	}
+}

@@ -22,6 +22,7 @@ import { StatsWindow } from "main/stats/stats.window";
 import Config from "@util/config";
 import { DockWindow } from "main/dock/dock.window";
 import { PERSISTENT_STORAGE_DIRECTORY } from "@const/persistent-storage-directory";
+import { NotificationsWindow } from "main/notifications/notifications.window";
 
 const WALLUST_FILE = Config.getString("theme.wallustThemeFile");
 
@@ -87,6 +88,7 @@ app.start({
 		LauncherWindow();
 		SliderWindow();
 		WorkspacesWindow();
+		NotificationsWindow();
 
 		monitorFile(`${CACHE_DIRECTORY}/style.css`, () => reloadStyles());
 		monitorFile(WALLUST_FILE, () => {
