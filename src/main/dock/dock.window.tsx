@@ -10,7 +10,14 @@ import { Astal, Gdk, Gtk } from "ags/gtk4";
 import app from "ags/gtk4/app";
 import AstalHyprland from "gi://AstalHyprland?version=0.1";
 import Gio from "gi://Gio?version=2.0";
-import { createState, For, onCleanup } from "gnim";
+import {
+	Accessor,
+	createBinding,
+	createComputed,
+	createState,
+	For,
+	onCleanup,
+} from "gnim";
 import styles from "./dock.window.style";
 import { compareString } from "@util/string";
 
@@ -36,34 +43,32 @@ export function DockWindow({ gdkMonitor }: Props) {
 	const { BOTTOM, LEFT, RIGHT } = Astal.WindowAnchor;
 	const [entries, setEntries] = createState<DockEntry[]>([]);
 	const hyprland = AstalHyprland.get_default();
-	const [visible, setVisible] = createState(false);
-
 	const destroyer = new Destroyer();
 
-	let hyprlandDestroyer: Destroyer | null;
-	const connectHyprlandWorkspace = () => {
-		hyprlandDestroyer?.destroy();
-		hyprlandDestroyer = new Destroyer();
-
-		const workspace = hyprland.focusedWorkspace;
-
-		const clientsChange = () => {
-			setVisible(!workspace.clients.length);
-		};
-
-		hyprlandDestroyer.addDisconnect(
-			workspace,
-			workspace.connect("notify::clients", clientsChange),
-		);
-		clientsChange();
-	};
-
-	destroyer.add(() => hyprlandDestroyer?.destroy());
-	destroyer.addDisconnect(
-		hyprland,
-		hyprland.connect("notify::focused-workspace", connectHyprlandWorkspace),
+	const hyprlandMonitor = createBinding(hyprland, "monitors").as((monitors) =>
+		monitors.find((monitor) => monitor.name == gdkMonitor.connector),
 	);
-	connectHyprlandWorkspace();
+
+	const activeWorkspace = createComputed(() => {
+		const monitor = hyprlandMonitor();
+
+		if (monitor) {
+			return createBinding(monitor, "active_workspace")();
+		}
+
+		return null;
+	});
+
+	const visible = createComputed(() => {
+		const active = activeWorkspace();
+		if (active) {
+			const clients = createBinding(active, "clients")();
+			if (!clients.length) {
+				return true;
+			}
+		}
+		return false;
+	});
 
 	const scanDesktop = () => {
 		const directory = Gio.File.new_for_path(DOCK_DIRECTORY);
