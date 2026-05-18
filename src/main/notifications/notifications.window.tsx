@@ -4,10 +4,9 @@ import app from "ags/gtk4/app";
 import AstalNotifd from "gi://AstalNotifd?version=0.1";
 import { Accessor, createBinding, createComputed, For, With } from "gnim";
 import styles from "./notifications.window.style";
-import { cc } from "@util/string";
-import { createCursorPointer } from "@util/ags";
 import { Destroyer } from "@util/destroyer";
 import Gtk4LayerShell from "gi://Gtk4LayerShell?version=1.0";
+import { Notification } from "./notification";
 
 const RIGHT_MARGIN = 10;
 
@@ -68,50 +67,7 @@ export function NotificationsWindow() {
 						>
 					}
 				>
-					{(notification) => (
-						<box cssClasses={[styles.notification]}>
-							<With
-								value={
-									createComputed(() => [
-										createBinding(notification, "app_icon")(),
-										createBinding(notification, "app_name")(),
-									]) as Accessor<[string, string]>
-								}
-							>
-								{([appIcon, appName]) => (
-									<box orientation={Gtk.Orientation.VERTICAL}>
-										{(appIcon || appName) && (
-											<box cssClasses={[styles.appInfo]}>
-												<box hexpand>
-													{!!appIcon && (
-														<image
-															iconName={appIcon}
-															cssClasses={[styles.appIcon]}
-														/>
-													)}
-													{!!appName && <label label={appName} />}
-												</box>
-
-												<button
-													cssClasses={[styles.close]}
-													cursor={createCursorPointer()}
-													onClicked={() => notification.dismiss()}
-												>
-													<image iconName="window-close-symbolic" />
-												</button>
-											</box>
-										)}
-
-										<label
-											label={createBinding(notification, "summary")}
-											cssClasses={[styles.summary]}
-											halign={Gtk.Align.START}
-										/>
-									</box>
-								)}
-							</With>
-						</box>
-					)}
+					{(notification) => <Notification notification={notification} />}
 				</For>
 			</box>
 		</window>

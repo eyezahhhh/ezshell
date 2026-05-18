@@ -122,7 +122,11 @@ export function BarWindow(gdkMonitor: Gdk.Monitor) {
 											{icon && (
 												<image iconName={icon} cssClasses={[styles.appIcon]} />
 											)}
-											<label label={createBinding(client, "title") ?? ""} />
+											<label
+												label={createBinding(client, "title").as(
+													(title) => title ?? "",
+												)}
+											/>
 										</box>
 									);
 								}}
